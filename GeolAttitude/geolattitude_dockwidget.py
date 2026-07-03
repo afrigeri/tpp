@@ -3,6 +3,8 @@
 
 The UI is built programmatically to avoid Qt Designer/PyQt version friction in
 QGIS 4 development builds while preserving a Plugin Builder style layout.
+
+Hopefully this will enable a simpler transition to 4.0
 """
 
 import csv
@@ -373,7 +375,7 @@ class GeolAttitudeDockWidget(QDockWidget):
         uri = "Point"
         if crs_auth:
             uri += f"?crs={crs_auth}"
-        layer = QgsVectorLayer(uri, "geoattitude_points", "memory")
+        layer = QgsVectorLayer(uri, "geolattitude_points", "memory")
         provider = layer.dataProvider()
         provider.addAttributes([
             QgsField("pid", QVariant.Int),

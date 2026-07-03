@@ -11,7 +11,7 @@ The geometric elements are defined as:
 
 Plugin Builder 3 style QGIS 3.44 plugin to compute these quantities, also known as *structural attitude* from points sampled interactively on a DTM.
 
-## Workflow
+## Instructions
 
 1. Load a projected DTM/elevation raster and optional imagery.
 2. Open **Plugins > GeolAttitude > GeolAttitude**.
@@ -19,6 +19,8 @@ Plugin Builder 3 style QGIS 3.44 plugin to compute these quantities, also known 
 4. Click at least three points on the map canvas.
 5. GeolAttitude samples Z from the DTM and fits the `z = ax + by + c` plane.
 6. It reports dip, dip direction, right-hand-rule strike, normal vector and residuals.
+
+If you want to record the attitude symbol in your map, you can generate the new layer and the symbology from the _Dip-Strike Tools_ plugin https://plugins.qgis.org/plugins/dip_strike_tools/ by Francesco Pennica, Giuseppe Cosentino.
 
 ## Important CRS note
 

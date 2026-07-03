@@ -6,7 +6,7 @@ from qgis.gui import QgsMapToolEmitPoint
 
 
 class GeolAttitudeMapTool(QgsMapToolEmitPoint):
-    """Map tool that forwards clicked map coordinates to the dock widget."""
+    """Map tool to send clicked map coordinates to the dock widget."""
 
     def __init__(self, canvas, dockwidget):
         super().__init__(canvas)
