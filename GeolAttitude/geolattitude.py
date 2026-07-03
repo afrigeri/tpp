@@ -8,6 +8,7 @@ import os
 
 from qgis.PyQt.QtCore import Qt, QCoreApplication
 from qgis.PyQt.QtGui import QIcon
+
 try:  # QGIS 4 / Qt6 compatibility
     from qgis.PyQt.QtGui import QAction
 except ImportError:  # QGIS 3.44 / Qt5
@@ -137,7 +138,10 @@ class GeolAttitude:
     def deactivate_map_tool(self):
         """Deactivate the point capture map tool."""
         if self.map_tool is not None and self.canvas.mapTool() == self.map_tool:
-            if self.previous_map_tool is not None and self.previous_map_tool != self.map_tool:
+            if (
+                self.previous_map_tool is not None
+                and self.previous_map_tool != self.map_tool
+            ):
                 self.canvas.setMapTool(self.previous_map_tool)
             else:
                 self.canvas.unsetMapTool(self.map_tool)

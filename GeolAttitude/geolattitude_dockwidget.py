@@ -14,6 +14,8 @@ from datetime import datetime
 
 import numpy as np
 
+from .plane_fitter import PlaneFitter
+
 from qgis.PyQt.QtCore import pyqtSignal, QVariant
 from qgis.PyQt.QtGui import QColor
 from qgis.PyQt.QtWidgets import (
@@ -28,6 +30,7 @@ from qgis.PyQt.QtWidgets import (
     QTextEdit,
     QVBoxLayout,
     QWidget,
+    QComboBox,
 )
 
 from qgis.core import (
@@ -119,6 +122,16 @@ class GeolAttitudeDockWidget(QDockWidget):
         self.output.setMinimumHeight(280)
         layout.addWidget(self.output)
 
+        self.fitMethod = QComboBox()
+        self.fitMethod.addItem("Least Squares", "least_squares")
+        self.fitMethod.addItem("Total Least Squares", "tls")
+        self.fitMethod.addItem("PCA / SVD", "pca")
+        self.fitMethod.addItem("Weighted LS", "wls")
+        self.fitMethod.addItem("RANSAC", "ransac")
+        self.fitMethod.addItem("Huber", "huber")
+        layout.addWidget(QLabel("Plane fit"))
+        layout.addWidget(self.fitMethod)
+
         self.refresh_button = QPushButton("Refresh raster list")
         self.refresh_button.clicked.connect(self.refresh_rasters)
         layout.addWidget(self.refresh_button)
@@ -148,13 +161,17 @@ class GeolAttitudeDockWidget(QDockWidget):
         """Add a clicked map point after sampling elevation from the selected DTM."""
         raster = self.selected_raster()
         if raster is None:
-            QMessageBox.warning(self, "No DTM selected", "Select a DTM/elevation raster first.")
+            QMessageBox.warning(
+                self, "No DTM selected", "Select a DTM/elevation raster first."
+            )
             return
 
         project_crs = self.canvas.mapSettings().destinationCrs()
         raster_crs = raster.crs()
         try:
-            transform = QgsCoordinateTransform(project_crs, raster_crs, QgsProject.instance())
+            transform = QgsCoordinateTransform(
+                project_crs, raster_crs, QgsProject.instance()
+            )
             raster_pt = transform.transform(map_point)
         except Exception as exc:  # pylint: disable=broad-except
             QMessageBox.critical(self, "CRS transform failed", str(exc))
@@ -165,7 +182,9 @@ class GeolAttitudeDockWidget(QDockWidget):
             QMessageBox.warning(self, "No raster value", message)
             return
 
-        self.points.append({"x": map_point.x(), "y": map_point.y(), "z": z, "raster": raster.name()})
+        self.points.append(
+            {"x": map_point.x(), "y": map_point.y(), "z": z, "raster": raster.name()}
+        )
         self._add_marker(map_point)
         self._update_rubber_band()
         if self.live_check.isChecked() and len(self.points) >= 3:
@@ -204,7 +223,9 @@ class GeolAttitudeDockWidget(QDockWidget):
                 if ok and self._is_numeric_z(value):
                     z = float(value)
                     try:
-                        if provider.sourceHasNoDataValue(band) and z == float(provider.sourceNoDataValue(band)):
+                        if provider.sourceHasNoDataValue(band) and z == float(
+                            provider.sourceNoDataValue(band)
+                        ):
                             continue
                     except Exception:  # pylint: disable=broad-except
                         pass
@@ -239,11 +260,16 @@ class GeolAttitudeDockWidget(QDockWidget):
         """Return a geometry type compatible with QGIS 3/4 rubber bands."""
         try:
             from qgis.core import Qgis  # pylint: disable=import-outside-toplevel
+
             if name == "line":
                 return Qgis.GeometryType.Line
             return Qgis.GeometryType.Point
         except Exception:  # pylint: disable=broad-except
-            return QgsWkbTypes.LineGeometry if name == "line" else QgsWkbTypes.PointGeometry
+            return (
+                QgsWkbTypes.LineGeometry
+                if name == "line"
+                else QgsWkbTypes.PointGeometry
+            )
 
     def _update_rubber_band(self):
         if self.rubber_band is None:
@@ -280,11 +306,22 @@ class GeolAttitudeDockWidget(QDockWidget):
     def _update_output_basic(self):
         lines = [f"Selected points: {len(self.points)}", ""]
         for idx, point in enumerate(self.points, 1):
-            lines.append(f"{idx}: X={point['x']:.3f}, Y={point['y']:.3f}, Z={point['z']:.3f}")
+            lines.append(
+                f"{idx}: X={point['x']:.3f}, Y={point['y']:.3f}, Z={point['z']:.3f}"
+            )
         self.output.setPlainText("\n".join(lines))
 
+    # @staticmethod
+    def fit_plane(self, points):
+        """Fit the sampled points using the shared PlaneFitter API."""
+        # return PlaneFitter.fit(points, method="least_squares")
+        method = self.fitMethod.currentData()
+
+        result = PlaneFitter.fit(points, method=method)
+        return result
+
     @staticmethod
-    def fit_plane(points):
+    def fit_plane_old(points):
         """Fit z = ax + by + c using least squares.
 
         Coordinates must use compatible linear units: x east, y north, z up.
@@ -299,7 +336,9 @@ class GeolAttitudeDockWidget(QDockWidget):
         matrix = np.column_stack([x, y, np.ones_like(x)])
         coeff, residuals, rank, singular_values = np.linalg.lstsq(matrix, z, rcond=None)
         if rank < 3:
-            raise ValueError("The selected points are nearly collinear or numerically degenerate.")
+            raise ValueError(
+                "The selected points are nearly collinear or numerically degenerate."
+            )
         a, b, c = coeff
         slope = math.hypot(a, b)
         dip = math.degrees(math.atan(slope))
@@ -307,7 +346,7 @@ class GeolAttitudeDockWidget(QDockWidget):
         strike_rhr = (dip_direction - 90.0) % 360.0
         z_fit = matrix @ coeff
         residual_vec = z - z_fit
-        rmse = math.sqrt(float(np.mean(residual_vec ** 2)))
+        rmse = math.sqrt(float(np.mean(residual_vec**2)))
         max_abs_resid = float(np.max(np.abs(residual_vec)))
         normal = np.array([-a, -b, 1.0], dtype=float)
         normal /= np.linalg.norm(normal)
@@ -362,7 +401,9 @@ class GeolAttitudeDockWidget(QDockWidget):
             "Points:",
         ]
         for idx, point in enumerate(self.points, 1):
-            lines.append(f"{idx}: X={point['x']:.3f}, Y={point['y']:.3f}, Z={point['z']:.3f}")
+            lines.append(
+                f"{idx}: X={point['x']:.3f}, Y={point['y']:.3f}, Z={point['z']:.3f}"
+            )
         self.output.setPlainText("\n".join(lines))
         if create_layer is None:
             create_layer = self.create_layer_check.isChecked()
@@ -377,35 +418,43 @@ class GeolAttitudeDockWidget(QDockWidget):
             uri += f"?crs={crs_auth}"
         layer = QgsVectorLayer(uri, "geolattitude_points", "memory")
         provider = layer.dataProvider()
-        provider.addAttributes([
-            QgsField("pid", QVariant.Int),
-            QgsField("z", QVariant.Double),
-            QgsField("dip", QVariant.Double),
-            QgsField("dip_dir", QVariant.Double),
-            QgsField("strike", QVariant.Double),
-            QgsField("rmse", QVariant.Double),
-            QgsField("npoints", QVariant.Int),
-            QgsField("method", QVariant.String),
-        ])
+        provider.addAttributes(
+            [
+                QgsField("pid", QVariant.Int),
+                QgsField("z", QVariant.Double),
+                QgsField("dip", QVariant.Double),
+                QgsField("dip_dir", QVariant.Double),
+                QgsField("strike", QVariant.Double),
+                QgsField("rmse", QVariant.Double),
+                QgsField("npoints", QVariant.Int),
+                QgsField("method", QVariant.String),
+            ]
+        )
         layer.updateFields()
         features = []
         for idx, point in enumerate(self.points, 1):
             feat = QgsFeature(layer.fields())
-            feat.setGeometry(QgsGeometry.fromPointXY(QgsPointXY(point["x"], point["y"])))
-            feat.setAttributes([
-                idx,
-                point["z"],
-                result["dip"],
-                result["dip_direction"],
-                result["strike_rhr"],
-                result["rmse"],
-                result["n"],
-                "least_squares",
-            ])
+            feat.setGeometry(
+                QgsGeometry.fromPointXY(QgsPointXY(point["x"], point["y"]))
+            )
+            feat.setAttributes(
+                [
+                    idx,
+                    point["z"],
+                    result["dip"],
+                    result["dip_direction"],
+                    result["strike_rhr"],
+                    result["rmse"],
+                    result["n"],
+                    "least_squares",
+                ]
+            )
             features.append(feat)
         provider.addFeatures(features)
         layer.updateExtents()
-        symbol = QgsMarkerSymbol.createSimple({"name": "circle", "color": "220,0,0", "size": "3"})
+        symbol = QgsMarkerSymbol.createSimple(
+            {"name": "circle", "color": "220,0,0", "size": "3"}
+        )
         layer.renderer().setSymbol(symbol)
         QgsProject.instance().addMapLayer(layer)
 
@@ -416,7 +465,9 @@ class GeolAttitudeDockWidget(QDockWidget):
             return
         if self.last_result is None and len(self.points) >= 3:
             self.compute_and_display(create_layer=False)
-        path, _ = QFileDialog.getSaveFileName(self, "Export GeolAttitude CSV", os.path.expanduser("~"), "CSV (*.csv)")
+        path, _ = QFileDialog.getSaveFileName(
+            self, "Export GeolAttitude CSV", os.path.expanduser("~"), "CSV (*.csv)"
+        )
         if not path:
             return
         if not path.lower().endswith(".csv"):
@@ -424,31 +475,35 @@ class GeolAttitudeDockWidget(QDockWidget):
         result = self.last_result or {}
         with open(path, "w", newline="", encoding="utf-8") as csv_file:
             writer = csv.writer(csv_file)
-            writer.writerow([
-                "pid",
-                "x",
-                "y",
-                "z",
-                "dip",
-                "dip_direction",
-                "strike_rhr",
-                "rmse",
-                "npoints",
-                "method",
-                "timestamp",
-            ])
+            writer.writerow(
+                [
+                    "pid",
+                    "x",
+                    "y",
+                    "z",
+                    "dip",
+                    "dip_direction",
+                    "strike_rhr",
+                    "rmse",
+                    "npoints",
+                    "method",
+                    "timestamp",
+                ]
+            )
             for idx, point in enumerate(self.points, 1):
-                writer.writerow([
-                    idx,
-                    point["x"],
-                    point["y"],
-                    point["z"],
-                    result.get("dip", ""),
-                    result.get("dip_direction", ""),
-                    result.get("strike_rhr", ""),
-                    result.get("rmse", ""),
-                    result.get("n", len(self.points)),
-                    "least_squares" if result else "",
-                    result.get("timestamp", ""),
-                ])
+                writer.writerow(
+                    [
+                        idx,
+                        point["x"],
+                        point["y"],
+                        point["z"],
+                        result.get("dip", ""),
+                        result.get("dip_direction", ""),
+                        result.get("strike_rhr", ""),
+                        result.get("rmse", ""),
+                        result.get("n", len(self.points)),
+                        "least_squares" if result else "",
+                        result.get("timestamp", ""),
+                    ]
+                )
         QMessageBox.information(self, "CSV exported", f"Saved:\n{path}")
