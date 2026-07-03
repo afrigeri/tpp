@@ -47,6 +47,8 @@ class PlaneFitter:
         method_key = method.lower().strip().replace("-", "_")
         if method_key in ("least_squares", "ols", "ordinary_least_squares"):
             return cls._fit_least_squares(points, method_name="least_squares")
+        elif method_key == "pca":
+            return PlaneFitter._pca(points)
         raise ValueError(f"Unsupported plane fitting method: {method}")
 
     @staticmethod
@@ -122,3 +124,5 @@ class PlaneFitter:
             "n": int(arr.shape[0]),
             "timestamp": datetime.now().isoformat(timespec="seconds"),
         }
+        
+
