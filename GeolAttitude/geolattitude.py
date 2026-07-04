@@ -9,6 +9,8 @@ import os
 from qgis.PyQt.QtCore import Qt, QCoreApplication
 from qgis.PyQt.QtGui import QIcon
 
+from .compat import RIGHT_DOCK_WIDGET_AREA
+
 try:  # QGIS 4 / Qt6 compatibility
     from qgis.PyQt.QtGui import QAction
 except ImportError:  # QGIS 3.44 / Qt5
@@ -101,7 +103,8 @@ class GeolAttitude:
         """Run method that loads and starts the plugin."""
         if self.dockwidget is None:
             self.dockwidget = GeolAttitudeDockWidget(self.iface, self)
-            self.iface.addDockWidget(Qt.RightDockWidgetArea, self.dockwidget)
+            # self.iface.addDockWidget(Qt.RightDockWidgetArea, self.dockwidget)
+            self.iface.addDockWidget(RIGHT_DOCK_WIDGET_AREA, self.dockwidget)
             self.dockwidget.closingPlugin.connect(self.onClosePlugin)
             self.dockwidget.startPickingRequested.connect(self.activate_map_tool)
             self.dockwidget.stopPickingRequested.connect(self.deactivate_map_tool)
