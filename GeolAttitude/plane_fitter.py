@@ -24,5 +24,6 @@ class PlaneFitter:
             algorithm = cls._algorithms[method]
         except KeyError as exc:
             available = ", ".join(cls.available_methods())
-            raise ValueError(f"Unknown plane fitting method '{method}'. Available: {available}") from exc
-
+            raise ValueError(
+                f"Unknown plane fitting method '{method}'. Available: {available}"
+            ) from exc
