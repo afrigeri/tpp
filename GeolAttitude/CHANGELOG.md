@@ -40,6 +40,7 @@ The format is inspired by [Keep a Changelog](https://keepachangelog.com/), and t
 * Improved compatibility with newer QGIS/PyQt enum names.
 * Fixed cases where computation could fail silently or return `None`.+
 * Fix dip-direction inversion: dip direction should represent the azimuth of steepest descent, measured clockwise from north.
+* Method not reported into the generated vector
 
 ---
 

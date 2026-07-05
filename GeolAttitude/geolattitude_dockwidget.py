@@ -387,7 +387,7 @@ class GeolAttitudeDockWidget(QDockWidget):
         provider.addAttributes(
             [
                 QgsField("pid", QVariant.Int),
-                QgsField("z", QVariant.Double),
+                QgsField("elevation", QVariant.Double),
                 QgsField("dip", QVariant.Double),
                 QgsField("dip_dir", QVariant.Double),
                 QgsField("strike", QVariant.Double),
@@ -398,6 +398,7 @@ class GeolAttitudeDockWidget(QDockWidget):
         )
         layer.updateFields()
         features = []
+        method = self.fitMethod.currentData()
         for idx, point in enumerate(self.points, 1):
             feat = QgsFeature(layer.fields())
             feat.setGeometry(
@@ -412,7 +413,7 @@ class GeolAttitudeDockWidget(QDockWidget):
                     result["strike_rhr"],
                     result["rmse"],
                     result["n"],
-                    "least_squares",
+                    method,
                 ]
             )
             features.append(feat)
