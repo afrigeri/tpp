@@ -8,18 +8,12 @@ The format is inspired by [Keep a Changelog](https://keepachangelog.com/), and t
 
 ### Added
 
-* Add unit tests for `PlaneFitter`.
-* Add regression tests for dip-direction convention.
-* Add tests for invalid point sets, including too few points and collinear points.
 
 ### Changed
 
-* Improve documentation of geological orientation conventions.
-* Clarify that coordinates are interpreted as `x = Easting`, `y = Northing`, `z = elevation`.
 
 ### Fixed
 
-* Fix dip-direction inversion: dip direction should represent the azimuth of steepest descent, measured clockwise from north.
 
 ---
 
@@ -27,25 +21,25 @@ The format is inspired by [Keep a Changelog](https://keepachangelog.com/), and t
 
 ### Added
 
-* Plugin Builder 3-style QGIS plugin layout.
-* Interactive point selection on the QGIS map canvas.
-* DTM-based elevation sampling.
-* Best-fit plane computation from selected points.
-* User-selectable fitting methods.
-* Reporting of dip, dip direction, right-hand-rule strike, normal vector, residuals and RMSE.
 * Compatibility support for QGIS 3.44 and QGIS 4.x API transitions.
+* Add unit tests for `PlaneFitter`.
+* Add regression tests for dip-direction convention.
+* Add tests for invalid point sets, including too few points and collinear points.
 
 ### Changed
 
 * Reorganized fitting code into a dedicated `algorithms/` module.
 * Improved separation between QGIS interface code and scientific computation code.
 * Updated plugin metadata for GeolAttitude version `0.2.3`.
+* Improve documentation of geological orientation conventions.
+* Clarify that coordinates are interpreted as `x = Easting`, `y = Northing`, `z = elevation`.
 
 ### Fixed
 
 * Improved handling of insufficient point selections.
 * Improved compatibility with newer QGIS/PyQt enum names.
-* Fixed cases where computation could fail silently or return `None`.
+* Fixed cases where computation could fail silently or return `None`.+
+* Fix dip-direction inversion: dip direction should represent the azimuth of steepest descent, measured clockwise from north.
 
 ---
 
@@ -58,4 +52,9 @@ The format is inspired by [Keep a Changelog](https://keepachangelog.com/), and t
 * Least-squares plane fitting from DTM-sampled points.
 * Basic computation of dip and dip direction.
 * GPL-3.0 licensing.
+* Interactive point selection on the QGIS map canvas.
+* DTM-based elevation sampling.
+* Best-fit plane computation from selected points.
+* User-selectable fitting methods.
+* Reporting of dip, dip direction, right-hand-rule strike, normal vector, residuals and RMSE.
 

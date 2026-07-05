@@ -48,7 +48,8 @@ def orientation_from_normal(normal):
     nx, ny, nz = normal
 
     dip = math.degrees(math.atan2(math.hypot(nx, ny), abs(nz)))
-    dip_direction = (math.degrees(math.atan2(-nx, -ny)) + 360.0) % 360.0
+    #dip_direction = (math.degrees(math.atan2(-nx, -ny)) + 360.0) % 360.0
+    dip_direction = (math.degrees(math.atan2(nx, ny)) + 360.0) % 360.0
     strike_rhr = (dip_direction - 90.0) % 360.0
 
     return normal, float(dip), float(dip_direction), float(strike_rhr)
