@@ -130,7 +130,7 @@ def fit_ransac(
     vertical_residuals = arr[:, 2] - (a * arr[:, 0] + b * arr[:, 1] + c)
     inlier_vertical_residuals = vertical_residuals[best_inlier_mask]
 
-    #max_abs_vertical_residual = float(np.max(np.abs(inlier_vertical_residuals)))
+    max_abs_vertical_residual = float(np.max(np.abs(inlier_vertical_residuals)))
     
     # Residuals from the utils module
     residuals = point_plane_residuals(points, normal, centroid)
@@ -159,5 +159,8 @@ def fit_ransac(
             "max_abs_resid": max_abs_resid,
         }
     )
+
+    result["max_abs_resid"] = max_abs_resid
+    result["max_abs_vertical_residual"] = max_abs_vertical_residual
 
     return result

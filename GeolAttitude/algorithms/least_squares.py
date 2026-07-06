@@ -39,17 +39,21 @@ def fit_least_squares(points):
 
     #result = base_result("least_squares", normal, centroid, len(points))
     
-    result = base_result(
-        normal=normal,
-        centroid=centroid,
-        n=len(points),
-        #method="Least squares",
-        rmse=rmse,
-        max_abs_resid=max_abs_resid,
-    )
+    
+    #result = base_result(
+    #    normal=normal,
+    #    centroid=centroid,
+    #    n=len(points),
+    #    #method="Least squares",
+    #    rmse=rmse,
+    #    max_abs_resid=max_abs_resid,
+    #)
+    
+    result = base_result("least_squares", normal, centroid, len(points))
     
     result["rmse"] = rmse
     result["max_abs_resid"] = max_abs_resid
+    result["max_abs_vertical_residual"] = max_abs_resid
     
     result.update(
         {
