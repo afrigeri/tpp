@@ -1,19 +1,15 @@
 """PCA/SVD plane fitting for GeolAttitude."""
 
-import math
-
 import numpy as np
 
 from .common import (
     points_to_array,
     base_result,
     normalize_vector,
-    point_plane_residuals,
     add_point_usage_fields,
+    compute_plane_statistics,
 )
 
-
-#from .utils import point_plane_residuals
 
 def fit_pca_svd(points):
     """Fit a plane using PCA/SVD and orthogonal distances.
@@ -34,29 +30,18 @@ def fit_pca_svd(points):
     if normal[2] < 0.0:
         normal = -normal
 
-    orthogonal_residuals = centered @ normal
-
-    residuals = point_plane_residuals(points, normal, centroid)
-
-    rmse = np.sqrt(np.mean(residuals**2))
-    max_abs_resid = np.max(np.abs(residuals))
-
     result = base_result("pca_svd", normal, centroid, len(points))
         
     result.update(
         {
-            "rmse": rmse,
-            "max_abs_resid": max_abs_resid,
             "rank": int(np.linalg.matrix_rank(centered)),
             "singular_values": singular_values,
             "eigenvalues": (singular_values**2) / max(len(points) - 1, 1),
-            "residuals": orthogonal_residuals,
         }
     )
-    
-    result["rmse"] = rmse
-    result["max_abs_resid"] = max_abs_resid
+
+    result.update(
+        compute_plane_statistics(points, normal, centroid)
+    )
 
     return add_point_usage_fields(result, points)
-    
-    #return result

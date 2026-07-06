@@ -361,13 +361,10 @@ class GeolAttitudeDockWidget(QDockWidget):
             f"Dip direction: {result['dip_direction']:.2f} deg azimuth",
             f"Strike RHR: {result['strike_rhr']:.2f} deg",
             f"Plane normal: [{result['normal'][0]:.6f}, {result['normal'][1]:.6f}, {result['normal'][2]:.6f}]",
-            f"RMSE vertical residual: {result['rmse']:.3f}",
-            f"Max abs vertical residual: {result['max_abs_resid']:.3f}",
-            f"---",
-            f"Orthogonal RMSE: {result['orthogonal_rmse']:.3f}"
-            f"Vertical RMSE: {result['vertical_rmse']:.3f}"
-            f"Max orthogonal residual: {result['max_abs_orthogonal_residual']:.3f}"
-            f"Max vertical residual: {result['max_abs_vertical_residual']:.3f}"
+            f"Orthogonal RMSE: {result['orthogonal_rmse']:.3f}",
+            f"Vertical RMSE: {result['vertical_rmse']:.3f}",
+            f"Max orthogonal residual: {result['max_abs_orthogonal_residual']:.3f}",
+            f"Max vertical residual: {result['max_abs_vertical_residual']:.3f}",
             "",
             "Points:",
         ]
@@ -459,6 +456,7 @@ class GeolAttitudeDockWidget(QDockWidget):
         if not path.lower().endswith(".csv"):
             path += ".csv"
         result = self.last_result or {}
+        method = result.get("method", self.fitMethod.currentData()) if result else ""
         with open(path, "w", newline="", encoding="utf-8") as csv_file:
             writer = csv.writer(csv_file)
             writer.writerow(
@@ -488,7 +486,7 @@ class GeolAttitudeDockWidget(QDockWidget):
                         result.get("strike_rhr", ""),
                         result.get("rmse", ""),
                         result.get("n", len(self.points)),
-                        "least_squares" if result else "",
+                        method,
                         result.get("timestamp", ""),
                     ]
                 )

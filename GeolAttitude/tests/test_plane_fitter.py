@@ -87,6 +87,34 @@ def test_north_dipping_plane_has_dip_direction_0():
     assert_angle_close(result["dip_direction"], 0.0)
     assert result["dip"] == pytest.approx(45.0, abs=1e-6)
 
+
+def test_pca_svd_reports_common_residual_statistics():
+    points = make_points_from_plane(
+        a=-1.0,
+        b=0.0,
+        c=0.0,
+        xy=[(0, 0), (1, 0), (0, 1), (1, 1)],
+    )
+
+    result = PlaneFitter.fit(points, method="pca_svd")
+
+    for key in [
+        "rmse",
+        "orthogonal_rmse",
+        "vertical_rmse",
+        "max_abs_resid",
+        "max_abs_orthogonal_residual",
+        "max_abs_vertical_residual",
+        "residuals",
+        "orthogonal_residuals",
+        "vertical_residuals",
+    ]:
+        assert key in result
+
+    assert result["orthogonal_rmse"] == pytest.approx(0.0, abs=1e-9)
+    assert result["vertical_rmse"] == pytest.approx(0.0, abs=1e-9)
+
+
 '''
 def test_noisy_plane_has_small_rmse():
     rng = np.random.default_rng(42)
