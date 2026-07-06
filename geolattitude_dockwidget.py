@@ -399,6 +399,8 @@ class GeolAttitudeDockWidget(QDockWidget):
             [
                 QgsField("pid", QVariant.Int),
                 QgsField("elevation", QVariant.Double),
+                QgsField("resid", QVariant.Double),
+                QgsField("abs_resid", QVariant.Double),
                 QgsField("dip", QVariant.Double),
                 QgsField("dip_dir", QVariant.Double),
                 QgsField("strike", QVariant.Double),
@@ -410,25 +412,36 @@ class GeolAttitudeDockWidget(QDockWidget):
             ]
         )
         layer.updateFields()
-        
-        orthogonal_residuals = result.get("orthogonal_residuals", [])
-        abs_orthogonal_residuals = result.get("abs_orthogonal_residuals", [])
-        
+
         features = []
         method = self.fitMethod.currentData()
+
+        orthogonal_residuals = result.get("orthogonal_residuals", [])
+        abs_orthogonal_residuals = result.get("abs_orthogonal_residuals", [])
+
         for idx, point in enumerate(self.points, 1):
             feat = QgsFeature(layer.fields())
             feat.setGeometry(
                 QgsGeometry.fromPoint(QgsPoint(point["x"], point["y"], point["z"]))
             )
-            
-            #resid = orthogonal_residuals[idx - 1] if idx - 1 < len(orthogonal_residuals) else None
-            #abs_resid = abs_orthogonal_residuals[idx - 1] if idx - 1 < len(abs_orthogonal_residuals) else None
-            
+
+            resid = (
+                orthogonal_residuals[idx - 1]
+                if idx - 1 < len(orthogonal_residuals)
+                else None
+            )
+            abs_resid = (
+                abs_orthogonal_residuals[idx - 1]
+                if idx - 1 < len(abs_orthogonal_residuals)
+                else None
+            )
+
             feat.setAttributes(
                 [
                     idx,
                     point["z"],
+                    resid,
+                    abs_resid,
                     result["dip"],
                     result["dip_direction"],
                     result["strike_rhr"],
@@ -470,6 +483,8 @@ class GeolAttitudeDockWidget(QDockWidget):
                     "x",
                     "y",
                     "z",
+                    "resid",
+                    "abs_resid",
                     "dip",
                     "dip_direction",
                     "strike_rhr",
@@ -486,6 +501,8 @@ class GeolAttitudeDockWidget(QDockWidget):
                         point["x"],
                         point["y"],
                         point["z"],
+                        result.get("resid", ""),
+                        result.get("abs_resid", ""),
                         result.get("dip", ""),
                         result.get("dip_direction", ""),
                         result.get("strike_rhr", ""),
