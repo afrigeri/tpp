@@ -163,4 +163,22 @@ def test_ransac_rejects_outlier():
     assert_angle_close(result["dip_direction"], 90.0)
     assert result["dip"] == pytest.approx(45.0, abs=1.0)
     
+def test_ransac_reports_max_abs_vertical_residual():
+    points = [
+        {"x": 0, "y": 0, "z": 0},
+        {"x": 1, "y": 0, "z": -1},
+        {"x": 0, "y": 1, "z": 0},
+        {"x": 1, "y": 1, "z": -1},
+        {"x": 2, "y": 1, "z": -2},
+        {"x": 100, "y": 100, "z": 1000},
+    ]
+
+    result = PlaneFitter.fit(points, method="ransac")
+
+    assert "max_abs_vertical_residual" in result
+    assert result["max_abs_vertical_residual"] >= 0.0
+    assert result["max_abs_vertical_residual"] < 1.0
+
+    
+    
             

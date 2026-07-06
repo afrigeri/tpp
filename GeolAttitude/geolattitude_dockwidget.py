@@ -128,7 +128,7 @@ class GeolAttitudeDockWidget(QDockWidget):
         # self.fitMethod.addItem("Total Least Squares", "tls")
         self.fitMethod.addItem("PCA / SVD", "pca_svd")
         # self.fitMethod.addItem("Weighted LS", "wls")
-        # self.fitMethod.addItem("RANSAC", "ransac")
+        self.fitMethod.addItem("RANSAC", "ransac")
         # self.fitMethod.addItem("Huber", "huber")
         layout.addWidget(QLabel("Plane fit method:"))
         layout.addWidget(self.fitMethod)
