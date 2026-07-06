@@ -10,9 +10,7 @@ Hopefully this will enable a simpler transition to 4.0
 import csv
 import math
 import os
-from datetime import datetime
 
-import numpy as np
 
 from .plane_fitter import PlaneFitter
 

@@ -24,8 +24,10 @@ extensions = [
     "sphinx.ext.autodoc",
     "sphinx.ext.napoleon",
     "sphinx.ext.viewcode",
+    'sphinxcontrib.bibtex'
 ]
 
+bibtex_bibfiles = ['refs.bib']
 html_theme = "furo"
 
 autodoc_member_order = "bysource"

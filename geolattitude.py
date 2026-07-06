@@ -6,7 +6,7 @@ Plugin Builder 3 style QGIS plugin entry point.
 
 import os
 
-from qgis.PyQt.QtCore import Qt, QCoreApplication
+from qgis.PyQt.QtCore import QCoreApplication
 from qgis.PyQt.QtGui import QIcon
 
 from .compat import RIGHT_DOCK_WIDGET_AREA
@@ -15,8 +15,6 @@ try:  # QGIS 4 / Qt6 compatibility
     from qgis.PyQt.QtGui import QAction
 except ImportError:  # QGIS 3.44 / Qt5
     from qgis.PyQt.QtWidgets import QAction
-
-from qgis.core import QgsApplication
 
 from .geolattitude_dockwidget import GeolAttitudeDockWidget
 from .geolattitude_maptool import GeolAttitudeMapTool

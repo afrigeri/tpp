@@ -233,7 +233,7 @@ def compute_plane_statistics(points, normal, centroid, inlier_indices=None):
     dict
         Common residual statistics, including RMSE values and maximum residuals.
     """
-    arr = points_to_array(points)
+    #arr = points_to_array(points)
 
     orthogonal_residuals = point_plane_residuals(points, normal, centroid)
 

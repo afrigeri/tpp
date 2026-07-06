@@ -1,7 +1,6 @@
 # -*- coding: utf-8 -*-
 """Map tool for GeolAttitude."""
 
-from qgis.PyQt.QtCore import Qt
 from qgis.gui import QgsMapToolEmitPoint
 
 from .compat import CROSS_CURSOR

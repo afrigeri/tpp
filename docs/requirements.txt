@@ -1,3 +1,4 @@
 sphinx>=8.0
 furo
 myst-parser
+sphinxcontrib.bibtex
