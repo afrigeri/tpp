@@ -4,7 +4,14 @@ import math
 
 import numpy as np
 
-from .common import base_result, normalize_vector, points_to_array
+from .common import (
+    points_to_array,
+    base_result,
+    normalize_vector,
+    point_plane_residuals,
+    add_point_usage_fields,
+)
+
 
 from .utils import point_plane_residuals
 

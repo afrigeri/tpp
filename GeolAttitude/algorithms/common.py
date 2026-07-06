@@ -130,4 +130,42 @@ def base_result(method, normal, centroid, n):
         "dip_direction": dip_direction,
         "strike_rhr": strike_rhr,
         "timestamp": datetime.now().isoformat(timespec="seconds"),
+        "n_selected": int(n),
+        "n_used": int(n),
+        "n_inliers": int(n),
+        "inlier_indices": list(range(int(n))),
+        "outlier_indices": [],
     }
+
+def point_plane_residuals(points, normal, centroid):
+    """Return signed orthogonal point-to-plane residuals."""
+    arr = points_to_array(points)
+    normal = normalize_vector(normal)
+    centroid = np.asarray(centroid, dtype=float)
+
+    return (arr - centroid) @ normal
+
+
+def add_point_usage_fields(result, points, inlier_indices=None):
+    """Add common selected/used/inlier/outlier fields to a fit result."""
+    n_selected = len(points)
+
+    if inlier_indices is None:
+        inlier_indices = list(range(n_selected))
+    else:
+        inlier_indices = sorted(int(i) for i in inlier_indices)
+
+    inlier_set = set(inlier_indices)
+    outlier_indices = [
+        i for i in range(n_selected)
+        if i not in inlier_set
+    ]
+
+    result["n"] = n_selected
+    result["n_selected"] = n_selected
+    result["n_used"] = len(inlier_indices)
+    result["n_inliers"] = len(inlier_indices)
+    result["inlier_indices"] = inlier_indices
+    result["outlier_indices"] = outlier_indices
+
+    return result

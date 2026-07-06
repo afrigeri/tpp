@@ -4,7 +4,12 @@ import math
 
 import numpy as np
 
-from .common import base_result, points_to_array
+from .common import (
+    points_to_array,
+    base_result,
+    point_plane_residuals,
+    add_point_usage_fields,
+)
 
 
 def fit_least_squares(points):
@@ -27,14 +32,29 @@ def fit_least_squares(points):
     z_fit = matrix @ coeff
     residual_vec = z - z_fit
 
-    result = base_result("least_squares", normal, centroid, len(points))
+    # new residuals
+    residuals = point_plane_residuals(points, normal, centroid)
+    rmse = float(np.sqrt(np.mean(residuals ** 2)))
+    max_abs_resid = float(np.max(np.abs(residuals)))
+
+    #result = base_result("least_squares", normal, centroid, len(points))
+    
+    result = base_result(
+        normal=normal,
+        centroid=centroid,
+        n=len(points),
+        #method="Least squares",
+        rmse=rmse,
+        max_abs_resid=max_abs_resid,
+    )
+    
     result.update(
         {
             "a": float(a),
             "b": float(b),
             "c": float(c),
-            "rmse": math.sqrt(float(np.mean(residual_vec**2))),
-            "max_abs_resid": float(np.max(np.abs(residual_vec))),
+            "rmse": rmse,
+            "max_abs_resid": max_abs_resid,
             "rank": int(rank),
             "singular_values": singular_values,
             "residuals": residual_vec,
