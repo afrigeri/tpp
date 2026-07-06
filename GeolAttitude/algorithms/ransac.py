@@ -8,6 +8,8 @@ from .common import (
     points_to_array,
 )
 
+from .utils import point_plane_residuals
+
 
 def _plane_from_three_points(p1, p2, p3):
     v1 = p2 - p1
@@ -127,8 +129,16 @@ def fit_ransac(
     vertical_residuals = arr[:, 2] - (a * arr[:, 0] + b * arr[:, 1] + c)
     inlier_vertical_residuals = vertical_residuals[best_inlier_mask]
 
-    max_abs_vertical_residual = float(np.max(np.abs(inlier_vertical_residuals)))
+    #max_abs_vertical_residual = float(np.max(np.abs(inlier_vertical_residuals)))
     
+    # Residuals from the utils module
+    residuals = point_plane_residuals(points, normal, centroid)
+
+    inlier_indices = np.where(np.abs(residuals) <= threshold)[0].tolist()
+    outlier_indices = np.where(np.abs(residuals) > threshold)[0].tolist()
+
+    rmse = np.sqrt(np.mean(residuals[inlier_indices] ** 2))
+    max_abs_resid = np.max(np.abs(residuals[inlier_indices]))
 
     result = base_result("ransac", normal, centroid, inliers.shape[0])
     result.update(
@@ -143,9 +153,9 @@ def fit_ransac(
             "rmse": float(np.sqrt(np.mean(inlier_residuals**2))),
             "vertical_residuals": vertical_residuals.tolist(),
             "inlier_vertical_residuals": inlier_vertical_residuals.tolist(),
-            "max_abs_vertical_residual": max_abs_vertical_residual,
-            "rmse": float(np.sqrt(np.mean(inlier_residuals**2))),
-            "max_abs_resid": max_abs_vertical_residual,
+            #"max_abs_vertical_residual": max_abs_vertical_residual,
+            "rmse": rmse,
+            "max_abs_resid": max_abs_resid,
         }
     )
 

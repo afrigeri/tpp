@@ -6,6 +6,7 @@ import numpy as np
 
 from .common import base_result, normalize_vector, points_to_array
 
+from .utils import point_plane_residuals
 
 def fit_pca_svd(points):
     """Fit a plane using PCA/SVD and orthogonal distances.
@@ -28,11 +29,16 @@ def fit_pca_svd(points):
 
     orthogonal_residuals = centered @ normal
 
+    residuals = point_plane_residuals(points, normal, centroid)
+
+    rmse = np.sqrt(np.mean(residuals**2))
+    max_abs_resid = np.max(np.abs(residuals))
+
     result = base_result("pca_svd", normal, centroid, len(points))
     result.update(
         {
-            "rmse": math.sqrt(float(np.mean(orthogonal_residuals**2))),
-            "max_abs_resid": float(np.max(np.abs(orthogonal_residuals))),
+            "rmse": rmse,
+            "max_abs_resid": max_abs_resid,
             "rank": int(np.linalg.matrix_rank(centered)),
             "singular_values": singular_values,
             "eigenvalues": (singular_values**2) / max(len(points) - 1, 1),
