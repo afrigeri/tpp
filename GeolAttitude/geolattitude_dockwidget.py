@@ -363,6 +363,11 @@ class GeolAttitudeDockWidget(QDockWidget):
             f"Plane normal: [{result['normal'][0]:.6f}, {result['normal'][1]:.6f}, {result['normal'][2]:.6f}]",
             f"RMSE vertical residual: {result['rmse']:.3f}",
             f"Max abs vertical residual: {result['max_abs_resid']:.3f}",
+            f"---",
+            f"Orthogonal RMSE: {result['orthogonal_rmse']:.3f}"
+            f"Vertical RMSE: {result['vertical_rmse']:.3f}"
+            f"Max orthogonal residual: {result['max_abs_orthogonal_residual']:.3f}"
+            f"Max vertical residual: {result['max_abs_vertical_residual']:.3f}"
             "",
             "Points:",
         ]

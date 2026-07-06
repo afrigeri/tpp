@@ -9,6 +9,7 @@ from .common import (
     base_result,
     point_plane_residuals,
     add_point_usage_fields,
+    compute_plane_statistics,
 )
 
 
@@ -29,43 +30,31 @@ def fit_least_squares(points):
     normal = np.array([-a, -b, 1.0], dtype=float)
     centroid = arr.mean(axis=0)
 
-    z_fit = matrix @ coeff
-    residual_vec = z - z_fit
-
-    # new residuals
-    residuals = point_plane_residuals(points, normal, centroid)
-    rmse = float(np.sqrt(np.mean(residuals ** 2)))
-    max_abs_resid = float(np.max(np.abs(residuals)))
-
-    #result = base_result("least_squares", normal, centroid, len(points))
-    
-    
-    #result = base_result(
-    #    normal=normal,
-    #    centroid=centroid,
-    #    n=len(points),
-    #    #method="Least squares",
-    #    rmse=rmse,
-    #    max_abs_resid=max_abs_resid,
-    #)
+    #residuals = point_plane_residuals(points, normal, centroid)
+    #rmse = float(np.sqrt(np.mean(residuals ** 2)))
+    #max_abs_resid = float(np.max(np.abs(residuals)))
     
     result = base_result("least_squares", normal, centroid, len(points))
     
-    result["rmse"] = rmse
-    result["max_abs_resid"] = max_abs_resid
-    result["max_abs_vertical_residual"] = max_abs_resid
+    #result["rmse"] = rmse
+    #result["max_abs_resid"] = max_abs_resid
+    #result["max_abs_vertical_residual"] = max_abs_resid
     
     result.update(
         {
             "a": float(a),
             "b": float(b),
             "c": float(c),
-            "rmse": rmse,
-            "max_abs_resid": max_abs_resid,
+     #      "rmse": rmse,
+     #      "max_abs_resid": max_abs_resid,
             "rank": int(rank),
             "singular_values": singular_values,
-            "residuals": residual_vec,
+     #      "residuals": residual_vec,
         }
+    )
+    
+    result.update(
+        compute_plane_statistics(points, normal, centroid)
     )
 
     #return result

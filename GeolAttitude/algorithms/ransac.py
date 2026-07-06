@@ -7,7 +7,8 @@ from .common import (
     normalize_vector,
     points_to_array,
     point_plane_residuals,
-    add_point_usage_fields
+    add_point_usage_fields,
+    compute_plane_statistics
 )
 
 #from .utils import point_plane_residuals
@@ -120,56 +121,35 @@ def fit_ransac(
         raise ValueError("RANSAC found too few inliers.")
 
     normal, centroid = _fit_plane_svd(inliers)
-    
-    residuals = (arr - centroid) @ normal
-    inlier_residuals = residuals[best_inlier_mask]
-    
-    result = base_result("ransac", normal, centroid, inliers.shape[0])
-    
-    a, b, c = result["a"], result["b"], result["c"]
 
-    vertical_residuals = arr[:, 2] - (a * arr[:, 0] + b * arr[:, 1] + c)
-    inlier_vertical_residuals = vertical_residuals[best_inlier_mask]
-
-    max_abs_vertical_residual = float(np.max(np.abs(inlier_vertical_residuals)))
-    
-    # Residuals from the utils module
+    # Compute common statistics
     residuals = point_plane_residuals(points, normal, centroid)
 
     inlier_indices = np.where(np.abs(residuals) <= threshold)[0].tolist()
-    outlier_indices = np.where(np.abs(residuals) > threshold)[0].tolist()
 
-    rmse = np.sqrt(np.mean(residuals[inlier_indices] ** 2))
-    max_abs_resid = np.max(np.abs(residuals[inlier_indices]))
+    result = base_result("ransac", normal, centroid, len(points))
 
-    result = base_result("ransac", normal, centroid, inliers.shape[0])
     result.update(
-        {
-            "total_points": int(n_points),
-            "inliers": int(best_inlier_count),
-            "outliers": int(n_points - best_inlier_count),
-            "inlier_ratio": float(best_inlier_count / n_points),
-            "threshold": float(threshold),
-            "residuals": residuals.tolist(),
-            "inlier_residuals": inlier_residuals.tolist(),
-            "rmse": float(np.sqrt(np.mean(inlier_residuals**2))),
-            "vertical_residuals": vertical_residuals.tolist(),
-            "inlier_vertical_residuals": inlier_vertical_residuals.tolist(),
-            #"max_abs_vertical_residual": max_abs_vertical_residual,
-            "rmse": rmse,
-            "max_abs_resid": max_abs_resid,
-        }
+        compute_plane_statistics(
+            points,
+            normal,
+            centroid,
+            inlier_indices=inlier_indices,
+        )
     )
 
-    result["max_abs_resid"] = max_abs_resid
-    result["max_abs_vertical_residual"] = max_abs_vertical_residual
-    result["outliers"] = len(outlier_indices)
-    result["rejected_outliers"] = len(outlier_indices)
+    result["threshold"] = float(threshold)
+    result["total_points"] = len(points)
 
     result = add_point_usage_fields(
         result,
         points,
         inlier_indices=inlier_indices,
-        )
+    )
+
+    result["inliers"] = result["n_inliers"]
+    result["outliers"] = len(result["outlier_indices"])
+    result["inlier_ratio"] = result["n_inliers"] / len(points)
+    result["rejected_outliers"] = len(result["outlier_indices"])
 
     return result

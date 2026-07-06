@@ -138,13 +138,132 @@ def base_result(method, normal, centroid, n):
     }
 
 def point_plane_residuals(points, normal, centroid):
-    """Return signed orthogonal point-to-plane residuals."""
+    """
+    Compute the signed orthogonal residuals of a set of 3D points
+    relative to a plane.
+
+    The residual of each point is the perpendicular (orthogonal)
+    distance from the point to the plane defined by its unit normal
+    vector and a point lying on the plane (the centroid).
+
+    Positive and negative residuals indicate on which side of the
+    plane the point lies with respect to the plane normal.
+
+    Unlike vertical residuals (Δz), orthogonal residuals are
+    independent of the plane orientation and therefore provide a
+    geometrically meaningful measure of plane-fitting accuracy for
+    arbitrarily dipping geological surfaces.
+
+    Parameters
+    ----------
+    points : list of dict
+        Input points as dictionaries with keys ``'x'``, ``'y'`` and
+        ``'z'``.
+
+    normal : array-like, shape (3,)
+        Plane normal vector. It does not need to be normalized; the
+        function automatically converts it to a unit vector.
+
+    centroid : array-like, shape (3,)
+        Any point belonging to the fitted plane, typically the centroid
+        of the input points.
+
+    Returns
+    -------
+    numpy.ndarray
+        One signed orthogonal residual for each input point, expressed
+        in the same units as the input coordinates (typically metres).
+
+    Notes
+    -----
+    The residual is computed as
+
+    .. math::
+
+        r_i = (\\mathbf{p}_i - \\mathbf{c}) \\cdot \\hat{\\mathbf{n}}
+
+    where
+
+    * :math:`\\mathbf{p}_i` is the i-th point,
+    * :math:`\\mathbf{c}` is a point on the plane,
+    * :math:`\\hat{\\mathbf{n}}` is the unit normal vector.
+
+    These residuals are used to compute:
+
+    * Root Mean Square Error (RMSE)
+    * Maximum absolute orthogonal residual
+    * RANSAC inlier/outlier classification
+
+    They should not be confused with vertical residuals, which measure
+    only elevation differences and depend on the dip of the fitted
+    plane.
+    """
+    
     arr = points_to_array(points)
     normal = normalize_vector(normal)
     centroid = np.asarray(centroid, dtype=float)
 
     return (arr - centroid) @ normal
 
+def point_plane_vertical_residuals(points, a, b, c):
+    """
+    Return vertical residuals between observed z values and the plane
+    z = ax + by + c.
+
+    Units are the same as the input z coordinates.
+    """
+    arr = points_to_array(points)
+
+    z_fit = a * arr[:, 0] + b * arr[:, 1] + c
+
+    return arr[:, 2] - z_fit
+
+
+def compute_plane_statistics(points, normal, centroid, inlier_indices=None):
+    """
+    Compute common residual statistics for a fitted plane.
+
+    Orthogonal residuals are perpendicular distances to the plane.
+    Vertical residuals are elevation differences relative to z = ax + by + c.
+
+    Returns
+    -------
+    dict
+        Common residual statistics, including RMSE values and maximum residuals.
+    """
+    arr = points_to_array(points)
+
+    orthogonal_residuals = point_plane_residuals(points, normal, centroid)
+
+    temp = base_result("statistics", normal, centroid, len(points))
+    a, b, c = temp["a"], temp["b"], temp["c"]
+
+    vertical_residuals = point_plane_vertical_residuals(points, a, b, c)
+
+    if inlier_indices is None:
+        used_indices = list(range(len(points)))
+    else:
+        used_indices = [int(i) for i in inlier_indices]
+
+    used_orthogonal = orthogonal_residuals[used_indices]
+    used_vertical = vertical_residuals[used_indices]
+
+    return {
+        "residuals": orthogonal_residuals.tolist(),
+        "orthogonal_residuals": orthogonal_residuals.tolist(),
+        "vertical_residuals": vertical_residuals.tolist(),
+
+        "inlier_residuals": used_orthogonal.tolist(),
+        "inlier_vertical_residuals": used_vertical.tolist(),
+
+        "rmse": float(np.sqrt(np.mean(used_orthogonal ** 2))),
+        "orthogonal_rmse": float(np.sqrt(np.mean(used_orthogonal ** 2))),
+        "vertical_rmse": float(np.sqrt(np.mean(used_vertical ** 2))),
+
+        "max_abs_resid": float(np.max(np.abs(used_orthogonal))),
+        "max_abs_orthogonal_residual": float(np.max(np.abs(used_orthogonal))),
+        "max_abs_vertical_residual": float(np.max(np.abs(used_vertical))),
+    }
 
 def add_point_usage_fields(result, points, inlier_indices=None):
     """Add common selected/used/inlier/outlier fields to a fit result."""
