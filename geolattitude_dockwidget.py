@@ -11,6 +11,7 @@ Hopefully this will enable a simpler transition to 4.0
 import csv
 import math
 import os
+import logging
 
 from .models.point import DigitizedPoint
 
@@ -39,14 +40,16 @@ from qgis.core import (
     QgsGeometry,
     QgsMapLayerType,
     QgsProject,
-    QgsRaster,
     QgsVectorLayer,
     QgsWkbTypes,
     QgsPoint,
     QgsPointXY,
     QgsMarkerSymbol,
+    QgsRaster,
 )
 from qgis.gui import QgsRubberBand, QgsVertexMarker
+
+LOGGER = logging.getLogger(__name__)
 
 
 class GeolAttitudeDockWidget(QDockWidget):
@@ -206,65 +209,103 @@ class GeolAttitudeDockWidget(QDockWidget):
 
     @staticmethod
     def _is_numeric_z(value):
+        """Return True when value can be converted to a finite float."""
         if value is None:
             return False
+
         try:
             z = float(value)
-        except Exception:  # pylint: disable=broad-except
+        except (TypeError, ValueError, OverflowError):
             return False
+
         return math.isfinite(z)
 
-    def sample_raster_z(self, raster, raster_pt):
-        """Sample elevation from raster at raster CRS point.
 
-        Returns tuple (z, message). z is None when sampling fails.
-        """
-        provider = raster.dataProvider()
-        if not raster.extent().contains(raster_pt):
-            return None, (
-                "The clicked point is outside the selected DTM extent after CRS transformation. "
-                "Check the selected raster and CRS definitions."
+def sample_raster_z(self, raster, raster_pt):
+    """Sample elevation from a raster at a point in the raster CRS.
+
+    Returns
+    -------
+    tuple
+        ``(z, message)``. ``z`` is ``None`` when sampling fails.
+    """
+    provider = raster.dataProvider()
+
+    if not raster.extent().contains(raster_pt):
+        return None, (
+            "The clicked point is outside the selected DTM extent after "
+            "CRS transformation. Check the selected raster and CRS definitions."
+        )
+
+    band_count = raster.bandCount()
+    if band_count < 1:
+        return None, "The selected raster has no bands."
+
+    # Preferred sampling method.
+    for band in range(1, band_count + 1):
+        try:
+            value, ok = provider.sample(raster_pt, band)
+        except (RuntimeError, TypeError, ValueError) as exc:
+            LOGGER.debug(
+                "Raster sample failed for band %d: %s",
+                band,
+                exc,
+                exc_info=True,
             )
-        band_count = raster.bandCount()
-        if band_count < 1:
-            return None, "The selected raster has no bands."
+            continue
 
-        for band in range(1, band_count + 1):
-            try:
-                value, ok = provider.sample(raster_pt, band)
-                if ok and self._is_numeric_z(value):
-                    z = float(value)
-                    try:
-                        if provider.sourceHasNoDataValue(band) and z == float(
-                            provider.sourceNoDataValue(band)
-                        ):
-                            continue
-                    except Exception:  # pylint: disable=broad-except
-                        pass
-                    return z, None
-            except Exception:  # pylint: disable=broad-except
-                pass
+        if not ok or not self._is_numeric_z(value):
+            continue
+
+        z = float(value)
 
         try:
-            ident = provider.identify(raster_pt, QgsRaster.IdentifyFormatValue)
-            if ident.isValid():
-                for value in ident.results().values():
-                    if self._is_numeric_z(value):
-                        return float(value), None
-        except Exception:  # pylint: disable=broad-except
-            pass
+            has_nodata = provider.sourceHasNoDataValue(band)
+            nodata_value = provider.sourceNoDataValue(band)
+        except (AttributeError, RuntimeError, TypeError, ValueError) as exc:
+            # Some raster providers do not expose source NoData information.
+            LOGGER.debug(
+                "Could not inspect NoData value for band %d: %s",
+                band,
+                exc,
+                exc_info=True,
+            )
+        else:
+            if has_nodata and z == float(nodata_value):
+                continue
 
-        return None, (
-            "Could not read a numeric elevation at this point. The point may be NoData, "
-            "outside valid DTM pixels, or the selected raster may be imagery rather than elevation."
+        return z, None
+
+    # Fallback for providers where sample() is unsupported or unsuccessful.
+    try:
+        identification = provider.identify(
+            raster_pt,
+            QgsRaster.IdentifyFormat.IdentifyFormatValue,
         )
+    except (RuntimeError, TypeError, ValueError) as exc:
+        LOGGER.debug(
+            "Raster identification failed: %s",
+            exc,
+            exc_info=True,
+        )
+    else:
+        if identification.isValid():
+            for value in identification.results().values():
+                if self._is_numeric_z(value):
+                    return float(value), None
+
+    return None, (
+        "Could not read a numeric elevation at this point. "
+        "The point may be NoData, outside valid DTM pixels, or the selected "
+        "raster may be imagery rather than elevation."
+    )
 
     def _add_marker(self, point):
         marker = QgsVertexMarker(self.canvas)
         marker.setCenter(QgsPointXY(point))
         marker.setColor(QColor(220, 0, 0))
         marker.setIconSize(10)
-        marker.setIconType(QgsVertexMarker.ICON_CIRCLE)
+        marker.setIconType(QgsVertexMarker.IconType.ICON_CIRCLE)
         marker.setPenWidth(2)
         self.markers.append(marker)
 
@@ -280,9 +321,9 @@ class GeolAttitudeDockWidget(QDockWidget):
             return Qgis.GeometryType.Point
         except Exception:  # pylint: disable=broad-except
             return (
-                QgsWkbTypes.LineGeometry
+                QgsWkbTypes.GeometryType.LineGeometry
                 if name == "line"
-                else QgsWkbTypes.PointGeometry
+                else QgsWkbTypes.GeometryType.PointGeometry
             )
 
     def _update_rubber_band(self):

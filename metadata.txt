@@ -2,9 +2,7 @@
 name=GeolAttitude
 qgisMinimumVersion=3.44
 qgisMaximumVersion=4.99
-description=Plugin for for interactive estimation the attitude of geologic planar features from DTMs. Implements user-selectable fitting methods and uncertainty analysis.
-
-It is developed by a geologist, for geologists with the right attitude! 
+description=Plugin for for interactive estimation the attitude of geologic planar features from DTMs. Implements user-selectable fitting methods and uncertainty analysis.  It is developed by a geologist, for geologists with the right attitude! 
 version=0.2.12
 author=Alessandro Frigeri
 email=alessandro.frigeri@inaf.it
