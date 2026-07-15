@@ -2,3 +2,4 @@ sphinx
 furo
 myst-parser
 sphinxcontrib-bibtex
+sphinx_rtd_theme
