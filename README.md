@@ -171,7 +171,7 @@ While the plugins above mainly focus on digitizing measurements, three-point sol
 
 Complete documentation is available on **Read the Docs**.
 
-https://geolattitude.readthedocs.io/
+https://geolattitude-qgis-plug-in.readthedocs.io/
 
 ---
 
