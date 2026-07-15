@@ -46,6 +46,13 @@ For planetary use, use an appropriate projected Moon/Mars/etc. CRS where XY unit
 
 Coordinates are treated as x=east, y=north, z=up. Dip direction is the azimuth of steepest descent measured clockwise from north.
 
+## Similar and Related Plug-ins 
+
+- ThreePointMethod by Ewelina Brach
+- Dip-Strike Tools by Francesco Pennica
+- DipStrike To KMZ by Shyam Mishra
+- Limiti Geo by Matteo Bellia
+
 **Acknowledgements** This work is supported by
 ASI-INAF contract n.2023-3-HH.0 Esplorazione di
 Marte.
