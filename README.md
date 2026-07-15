@@ -139,16 +139,25 @@ The plugin can be applied to Earth, Moon, Mars or other planetary bodies provide
 
 ## Related QGIS Plugins
 
-GeolAttitude complements several QGIS plugins for structural geology and geological mapping.
+## Related QGIS Plugins
 
+Several excellent QGIS plugins address complementary aspects of structural geology and geological mapping:
 
-| Plugin | Purpose | Author(s) | Link |
-|--------|---------|-----------|------|
-| **ThreePointMethod** | Computes strike, dip and dip direction using the classical three-point method. | Ewelina Brach | https://plugins.qgis.org/plugins/ThreePointMethod/ |
-| **Dip-Strike Tools** | Digitizes, manages, analyses and symbolises structural measurements. | Francesco Pennica, Giuseppe Cosentino | https://plugins.qgis.org/plugins/dip_strike_tools/ |
-| **DipStrike To KMZ** | Exports dip/strike measurements to KMZ preserving symbol orientation. | Shyam Mishra | https://plugins.qgis.org/plugins/DipStrikeToKMZ/ |
-| **GeoStereonet** | Interactive stereonet plotting and structural geology analysis. | Shyam Mishra | https://plugins.qgis.org/plugins/GeoStereonet/ |
-| **Limiti Geo** | Computes the intersection between a geological plane and a Digital Terrain Model. | Matteo Bellia | https://plugins.qgis.org/plugins/LimitiGeo/ |
+- **[ThreePointMethod](https://plugins.qgis.org/plugins/ThreePointMethod/)** — Computes strike, dip and dip direction using the classical three-point method.  
+  *Author:* Ewelina Brach
+
+- **[Dip-Strike Tools](https://plugins.qgis.org/plugins/dip_strike_tools/)** — Digitizes, manages, analyses and symbolises structural measurements.  
+  *Authors:* Francesco Pennica, Giuseppe Cosentino
+
+- **[DipStrike To KMZ](https://plugins.qgis.org/plugins/DipStrikeToKMZ/)** — Exports dip/strike measurements to KMZ while preserving geological symbols.  
+  *Author:* Shyam Mishra
+
+- **[GeoStereonet](https://plugins.qgis.org/plugins/GeoStereonet/)** — Interactive stereonet plotting and structural geology analysis.  
+  *Author:* Shyam Mishra
+
+- **[Limiti Geo](https://plugins.qgis.org/plugins/LimitiGeo/)** — Computes the intersection between a geological plane and a Digital Terrain Model.  
+  *Author:* Matteo Bellia
+
 
 ---
 
